@@ -169,6 +169,10 @@
       </tr>
     </table>
   </div>
+  <div>
+    <p><b>Is it better to stay or switch?</b></p>
+    <p>The answer can be revealed through the Bayes' theorem. Breaking down the equation for Bayes' theorem even further, P(A|B) = P(B|A)P(A) / P(B) = P(B|A) * P(A) / P(B|A) * P(A) + P(B|not A) * P(not A). In this case, P(A) is the marginal probability that door 1 has a car behind it without knowing about the door that the host reveals, so it is equal to 1/3. P(not A) is the probability that the player did not pick the door with the car behind it. Since P(not A) is the probability that the player does not pick the door with the car behind it. Since the door either has the car behind it or not, P(B) is equal to 1 - P(A), 2/3. P(B|A) is the probability that the host shows a door with a goat behind it, given that there is a car behind door 1. Since the host always shows a door with a goat, P(B|A) is equal to 1. P(B|not A) is the probability that the host shows the goat, given that there is a goat behind door 1. As mentioned previously like P(B|A), the host always shows a door with a goat, so P(B|not A) is also equal to 1. Plugging each number into the equation gets us (1)(1/3) / ((1)(1/3) + (1)(2/3)) = (1/3) / 1 = 1/3. The probability that the car is behind the door of the player's choice is unchanged by the evidence. However, since the car can only either be behind the door of the player's choice or behind the door the host didn't reveal, the probability it is behind the door that is not revealed is 2/3. Therefore, switching is twice as likely to get you the prize as staying.</p>
+  </div>
   </main>
 
 <style>
