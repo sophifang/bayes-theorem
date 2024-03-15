@@ -1,5 +1,6 @@
 <script>
   import * as d3 from "d3";
+  import { line, scaleLinear, axisBottom, axisLeft } from 'd3';
   let score;
   try {
     let savedScore = localStorage.getItem("score") || false;
@@ -57,17 +58,21 @@
   } 
   function autoselectStay(iteration) {
     userSelection = Math.floor(Math.random() * 3);
-    setTimeout(() => {  revealHost(); }, 500);
-    setTimeout(() => {  userStay(); }, 500);
-    setTimeout(() => {  revealAll(); }, 1000);
-    setTimeout(() => {  restartGame(); }, 2000);
+    setTimeout(() => {  revealHost(); }, 100);
+    setTimeout(() => {  userStay(); }, 100);
+    setTimeout(() => {  revealAll(); }, 200);
+    setTimeout(() => {  data.push({ trial: iteration+1, percentage: Math.round((score.stay.win / (score.stay.win + score.stay.loss)) * 100) });  }, 200);
+    setTimeout(() => {  drawChart(); }, 300);
+    setTimeout(() => {  restartGame(); }, 300);
   }
   function autoselectSwitch(iteration) {
     userSelection = Math.floor(Math.random() * 3);
-    setTimeout(() => {  revealHost(); }, 500);
-    setTimeout(() => {  userSwitch(); }, 1000);
-    setTimeout(() => {  revealAll(); }, 1500);
-    setTimeout(() => {  restartGame(); }, 2000);
+    setTimeout(() => {  revealHost(); }, 100);
+    setTimeout(() => {  userSwitch(); }, 150);
+    setTimeout(() => {  revealAll(); }, 200);
+    setTimeout(() => {  dataSwitch.push({ trial: iteration+1, percentage: Math.round((score.switch.win / (score.switch.win + score.switch.loss)) * 100) });  }, 200);
+    setTimeout(() => {  drawLineChart(); }, 300);
+    setTimeout(() => {  restartGame(); }, 300);
   }
   function restartGame() {
     closeDoor(0);
@@ -132,6 +137,7 @@
     localStorage.setItem("score", JSON.stringify(score));
     updatePieChartStay();
     updatePieChartSwitch();
+    // updateLineChart();
     gamePhase++;
   }
   function updatePieChartStay() {
@@ -183,7 +189,8 @@
         .attr('dy', '0.35em')
         .text(d => Math.round(d.data.value/(score.stay.win + score.stay.loss) * 100)+"%")
         .style("text-anchor", "middle")
-        .style("font-size", 17);
+        .style("font-size", 17)
+        .style('font-family', 'Barlow');
 }
 function updatePieChartSwitch() {
     d3.select('#pieChartSwitch').selectAll('svg').remove();
@@ -234,15 +241,242 @@ function updatePieChartSwitch() {
         .attr('dy', '0.35em')
         .text(d => Math.round(d.data.value/(score.switch.win + score.switch.loss) * 100)+"%")
         .style("text-anchor", "middle")
-        .style("font-size", 17);;
+        .style("font-size", 17)
+        .style('font-family', 'Barlow');
 }
+let data = [
+    ];
+let dataSwitch = [
+    ];
+function initializeLineChart(){
+  d3.select('#lineChart').selectAll('svg').remove();
+      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const width = 400;
+      const height = 200;
+
+      const svg = d3.select('#lineChart')
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom+6)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const x = scaleLinear()
+        .domain([1, 100])
+        .range([0, width]);
+
+      const y = scaleLinear()
+        .domain([0, 100])
+        .range([height, 0]);
+
+      const xAxis = axisBottom(x);
+      const yAxis = axisLeft(y);
+
+      svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(xAxis)
+        .attr("font-family","Barlow");
+
+      svg.append('g')
+        .call(yAxis)
+        .attr("font-family","Barlow");
+
+
+      svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", width/2)
+        .attr("y", height +35)
+        .text("NUMBER OF TRIALS");
+      svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("y", -27)
+        .attr("x", -100)
+        // .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("SUCCESS RATE");
+}
+function initializeLineChartSwitch(){
+  d3.select('#lineChartSwitch').selectAll('svg').remove();
+      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const width = 400;
+      const height = 200;
+
+      const svg = d3.select('#lineChartSwitch')
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom+6)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const x = scaleLinear()
+        .domain([1, 100])
+        .range([0, width]);
+
+      const y = scaleLinear()
+        .domain([0, 100])
+        .range([height, 0]);
+
+      const xAxis = axisBottom(x);
+      const yAxis = axisLeft(y);
+
+      svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(xAxis)
+        .attr("font-family","Barlow");
+
+      svg.append('g')
+        .call(yAxis)
+        .attr("font-family","Barlow");
+
+
+      svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", width/2)
+        .attr("y", height +35)
+        .text("NUMBER OF TRIALS");
+      svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("y", -27)
+        .attr("x", -100)
+        // .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("SUCCESS RATE");
+}
+function drawChart() {
+  d3.select('#lineChartSwitch').selectAll('svg').remove();
+      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const width = 400;
+      const height = 200;
+
+      const svg = d3.select('#lineChartSwitch')
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom+6)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const x = scaleLinear()
+        .domain([1, 100])
+        .range([0, width]);
+
+      const y = scaleLinear()
+        .domain([0, 100])
+        .range([height, 0]);
+
+      const xAxis = axisBottom(x);
+      const yAxis = axisLeft(y);
+
+      svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(xAxis)
+        .attr("font-family","Barlow");
+
+      svg.append('g')
+        .call(yAxis)
+        .attr("font-family","Barlow");
+
+
+      svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", width/2)
+        .attr("y", height +35)
+        .text("NUMBER OF TRIALS");
+      svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("y", -27)
+        .attr("x", -100)
+        // .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("SUCCESS RATE");
+
+      const lineGenerator = line()
+        .x(d => x(d.trial))
+        .y(d => y(d.percentage));
+
+      const path = svg.append('path')
+        .datum(data)
+        .attr('fill', 'none')
+        .attr('stroke', 'steelblue')
+        .attr('stroke-width', 1.5)
+        .attr('d', lineGenerator);
+
+  }
+  function drawLineChart() {
+    d3.select('#lineChartSwitch').selectAll('svg').remove();
+      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const width = 400;
+      const height = 200;
+
+      const svg = d3.select('#lineChartSwitch')
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const x = scaleLinear()
+        .domain([1, 100])
+        .range([0, width]);
+
+      const y = scaleLinear()
+        .domain([0, 100])
+        .range([height, 0]);
+
+      const xAxis = axisBottom(x);
+      const yAxis = axisLeft(y);
+
+      svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(xAxis);
+
+      svg.append('g')
+        .call(yAxis);
+
+      const lineGenerator = line()
+        .x(d => x(d.trial))
+        .y(d => y(d.percentage));
+
+      const path = svg.append('path')
+        .datum(dataSwitch)
+        .attr('fill', 'none')
+        .attr('stroke', 'steelblue')
+        .attr('stroke-width', 1.5)
+        .attr('d', lineGenerator);
+      svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", width/2)
+        .attr("y", height +35)
+        .text("NUMBER OF TRIALS");
+      svg.append("text")
+      .attr("class", "y label")
+      .attr("text-anchor", "middle")
+      .attr("y", -27)
+      .attr("x", -100)
+      // .attr("dy", ".75em")
+      .attr("transform", "rotate(-90)")
+      .text("SUCCESS RATE");
+
+      // data.forEach((d, i) => {
+      //   setTimeout(() => {
+      //     path.transition()
+      //       .attr('d', lineGenerator(data.slice(0, i + 1)));
+      //   }, i * 1000); // Adjust the delay time as needed
+      // });
+  }
 </script>
 
 <main>
   <div class = "title-page">
     <img src = "title-page.svg"/>
     <button class = "aboutBtn"><img src = "question-sign.png"/></button>
-    <button class = "btn">Let's do this!</button>
+    <button class = "btn" on:click={() => {initializeLineChart(); initializeLineChartSwitch();}}>Let's do this!</button>
   </div>
   <div class = "game">
     <p>In front of you are three doors. Behind one door is a car 🚗 and behind the other two are goats 🐐🐐.</p>
@@ -297,21 +531,21 @@ function updatePieChartSwitch() {
     <p>{gameResult}</p>
     <div class = "twoBtns">
       <button class = "btn" on:click={restartGame}>Try again</button>
-      <button class = "btn">Tell me more!</button>
+      <button class = "btn" on:click={initializeLineChart}>Tell me more!</button>
     </div>
   </div>
   {/if}
   <br>
   <p>Would you believe it if we told you that choosing not to switch your selection after the host reveals a door to you decreases your probability of winning to only <b>33%</b>?</p>
-  <p>Don't believe us? Click the button below to simulate 10 games where the user stays.</p>
+  <p>Don't believe us? Click the button below to simulate 100 games where the user stays.</p>
   <button class = "btn" on:click={() => { 
-    for (let i = 0; i < 10; i++) {
-      setTimeout(() => autoselectStay(i), i * 4000); 
+    for (let i = 0; i < 100; i++) {
+      setTimeout(() => autoselectStay(i), i * 500); 
       }
     }}>
-    Simulate 10 Games
+    Simulate 100 Games
   </button>
-  <div class = "game">
+  <div class = "simulation">
     <div class="row">
       <div class = "column" on:click={() => selectDoor(0)}
         style={`border: solid 5px ${userSelection === 0 ? "black" : "#fef2cf"}`}
@@ -328,12 +562,14 @@ function updatePieChartSwitch() {
         >
         <img class = "door" src= "closed-door.svg"/>
       </div>
+      <div class = "column" id="lineChart"></div>
     </div>
   </div>
   <br>
   <br>
   <p>As you might have noticed, the car wasn't chosen very often when we don't change our selection. We are converging towards a 33% win rate. Those don't seem like good odds!</p>
-  <img src= "switch-graph-png.png"/>
+  <div id="lineChart"></div>
+  <!-- <img src= "switch-graph-png.png"/> -->
   <br>
   <br>
   <br>
@@ -343,15 +579,15 @@ function updatePieChartSwitch() {
   <br>
   <br>
   <p>Based on fancy math (which we will explain later), switching gives us a higher win rate of <b>66%</b>!</p>
-  <p>Don't take our word for it though. Simulate 10 games where the user switches.</p>
+  <p>Don't take our word for it though. Simulate 100 games where the user switches.</p>
   <button class = "btn" on:click={() => { 
-    for (let i = 0; i < 10; i++) {
-      setTimeout(() => autoselectSwitch(i), i * 4000); 
+    for (let i = 0; i < 100; i++) {
+      setTimeout(() => autoselectSwitch(i), i * 500);
       }
     }}>
-    Simulate 10 Games
+    Simulate 100 Games
   </button>
-  <div class = "game">
+  <div class = "simulation">
     <div class="row">
       <div class = "column" on:click={() => selectDoor(0)}
         style={`border: solid 5px ${userSelection === 0 ? "black" : "#fef2cf"}`}
@@ -368,6 +604,7 @@ function updatePieChartSwitch() {
         >
         <img class = "door" src= "closed-door.svg"/>
       </div>
+      <div id="lineChartSwitch"></div>
     </div>
   </div>
   <br>
@@ -375,7 +612,7 @@ function updatePieChartSwitch() {
   <br>
   <br>
   <p>That's more like it! As you can see, there's a higher probability of winning when the user switches their selection insteading of staying on their original door of choice.</p>
-  <img src= "stay-graph-png.png"/>
+  <!-- <img src= "stay-graph-png.png"/> -->
   <br>
   <br>
   <button class = "btn">I'm not convinced!</button>
@@ -619,6 +856,16 @@ function updatePieChartSwitch() {
     justify-content: center;
   }
 
+  .simulation .row {
+    display: flex;
+    width:70%;
+    justify-content: center;
+    align-items: center;
+  }
+  .simulation .column {
+    flex: 20%;
+    padding: 5px;
+  }
   .column {
     flex: 33.33%;
     padding: 5px;
