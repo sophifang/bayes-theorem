@@ -416,7 +416,7 @@ function drawChart() {
       const svg = d3.select('#lineChartSwitch')
         .append('svg')
         .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
+        .attr('height', height + margin.top + margin.bottom+6)
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -531,7 +531,7 @@ function drawChart() {
     <p>{gameResult}</p>
     <div class = "twoBtns">
       <button class = "btn" on:click={restartGame}>Try again</button>
-      <button class = "btn" on:click={initializeLineChart}>Tell me more!</button>
+      <button class = "btn">Tell me more!</button>
     </div>
   </div>
   {/if}
@@ -604,7 +604,7 @@ function drawChart() {
         >
         <img class = "door" src= "closed-door.svg"/>
       </div>
-      <div id="lineChartSwitch"></div>
+      <div class = "column" id="lineChartSwitch"></div>
     </div>
   </div>
   <br>
