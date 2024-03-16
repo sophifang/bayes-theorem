@@ -1,6 +1,8 @@
 <script>
   import * as d3 from "d3";
   import { line, scaleLinear, axisBottom, axisLeft } from 'd3';
+  import Katex from 'svelte-katex'
+  
   let score;
   try {
     let savedScore = localStorage.getItem("score") || false;
@@ -83,12 +85,6 @@
     closeDoor(0);
     closeDoor(1);
     closeDoor(2);
-    // closeDoor(3);
-    // closeDoor(4);
-    // closeDoor(5);
-    // closeDoor(6);
-    // closeDoor(7);
-    // closeDoor(8);
     initialize();
   }
   function next() {
@@ -142,16 +138,21 @@
     }
 
   }
+  function revealAllGame() {
+    openDoor(0);
+    openDoor(1);
+    openDoor(2);
+    if (userSelection === prizeDoor) {
+      gameResult = "You won!  But did you optimize your odds or were you just lucky? In other words, is it better to stay or to switch?"
+    } else {
+      gameResult = "You lost! Is there a way to optimize your chance for next time? In other words, is it better to stay or to switch?"
+    }
+    gamePhase++;
+  }
   function revealAll() {
     openDoor(0);
     openDoor(1);
     openDoor(2);
-    // openDoor(3);
-    // openDoor(4);
-    // openDoor(5);
-    // openDoor(6);
-    // openDoor(7);
-    // openDoor(8);
     if (userSelection === prizeDoor) {
       gameResult = "You won!  But did you optimize your odds or were you just lucky? In other words, is it better to stay or to switch?"
     } else {
@@ -159,9 +160,11 @@
     }
     score[path][["loss", "win"][Number(userSelection === prizeDoor)]]++;
     localStorage.setItem("score", JSON.stringify(score));
-    updatePieChartStay();
-    updatePieChartSwitch();
-    // updateLineChart();
+    if (path==="stay") {
+      updatePieChartStay();
+    } else {
+      updatePieChartSwitch();
+    }
     gamePhase++;
   }
   function updatePieChartStay() {
@@ -170,8 +173,8 @@
         { label: 'Win', value: score.stay.win },
         { label: 'Loss', value: score.stay.loss }
     ];
-    const width = 300;
-    const height = 300;
+    const width = 150;
+    const height = 150;
     const radius = Math.min(width, height) / 2;
 
     const svg = d3.select('#pieChartStay')
@@ -196,8 +199,8 @@
         .innerRadius(0);
 
     const label = d3.arc()
-        .outerRadius(radius - 40)
-        .innerRadius(radius - 40);
+        .outerRadius(radius - 25)
+        .innerRadius(radius - 25);
 
     const arc = svg.selectAll('.arc')
         .data(pie(data))
@@ -211,19 +214,19 @@
     arc.append('text')
         .attr('transform', d => `translate(${label.centroid(d)})`)
         .attr('dy', '0.35em')
-        .text(d => Math.round(d.data.value/(score.stay.win + score.stay.loss) * 100)+"%")
+        .text(d => (Math.round(d.data.value/(score.stay.win + score.stay.loss) * 100) > 0) ? Math.round(d.data.value/(score.stay.win + score.stay.loss) * 100)+"%" : '')
         .style("text-anchor", "middle")
-        .style("font-size", 17)
+        .style("font-size", 12)
         .style('font-family', 'Barlow');
 }
 function updatePieChartSwitch() {
-    d3.select('#pieChartSwitch').selectAll('svg').remove();
+  d3.select('#pieChartSwitch').selectAll('svg').remove();
     const data = [
         { label: 'Win', value: score.switch.win },
         { label: 'Loss', value: score.switch.loss }
     ];
-    const width = 300;
-    const height = 300;
+    const width = 150;
+    const height = 150;
     const radius = Math.min(width, height) / 2;
 
     const svg = d3.select('#pieChartSwitch')
@@ -248,8 +251,8 @@ function updatePieChartSwitch() {
         .innerRadius(0);
 
     const label = d3.arc()
-        .outerRadius(radius - 40)
-        .innerRadius(radius - 40);
+        .outerRadius(radius - 25)
+        .innerRadius(radius - 25);
 
     const arc = svg.selectAll('.arc')
         .data(pie(data))
@@ -263,9 +266,9 @@ function updatePieChartSwitch() {
     arc.append('text')
         .attr('transform', d => `translate(${label.centroid(d)})`)
         .attr('dy', '0.35em')
-        .text(d => Math.round(d.data.value/(score.switch.win + score.switch.loss) * 100)+"%")
+        .text(d => (Math.round(d.data.value/(score.switch.win + score.switch.loss) * 100) > 0) ? Math.round(d.data.value/(score.switch.win + score.switch.loss) * 100)+"%" : '')
         .style("text-anchor", "middle")
-        .style("font-size", 17)
+        .style("font-size", 12)
         .style('font-family', 'Barlow');
 }
 let data = [
@@ -526,7 +529,7 @@ function drawChart() {
   {#if gamePhase === 3}
   <div class="phase3">
     <p>See if you've won!</p>
-    <button class = "btn" on:click={revealAll}>Reveal</button>
+    <button class = "btn" on:click={revealAllGame}>Reveal</button>
   </div>
   {/if}
   {#if gamePhase === 4}
@@ -619,52 +622,24 @@ function drawChart() {
   {/if}
 
   {#if pageNumber === 4}
-  <p>Believe us now? Switching is by far the best choice to optimze your chances at winning.</p>
-  <div class="statistics">
-    <table>
-      <tr>
-        <th>Games</th>
-        <th>Stay</th>
-        <th>Switch</th>
-      </tr>
-      <tr>
-        <td>Wins:</td>
-        <td>{score.stay.win}</td>
-        <td>{score.switch.win}</td>
-      </tr>
-      <tr>
-        <td>Losses:</td>
-        <td>{score.stay.loss}</td>
-        <td>{score.switch.loss}</td>
-      </tr>
-      <tr>
-        <td>Win Statistic:</td>
-        <td>{Math.round((score.stay.win / (score.stay.win + score.stay.loss)) * 100) || 0 }%</td>
-        <td>{Math.round((score.switch.win / (score.switch.win + score.switch.loss)) * 100) || 0}%</td>
-      </tr>
-    </table>
-  </div>
-  <div class = "pieCharts">
-    <div class = "pieChart" id="pieChartStay">Win-Loss Breakdown for Staying<br></div>
-    <div class = "pieChart" id="pieChartSwitch">Win-Loss Breakdown for Switching<br></div>
-  </div>
-  <button class = "btn">Show me the math</button>
-  <br>
-  <br>
-  <center>
-  <p>Probabilities determined based on the following arrangement of car and goats:</p>
-  <table border="1">
-    <tr>
-        <th>Door 1</th>
-        <th>Door 2</th>
-        <th>Door 3</th>
-    </tr>
-    <tr>
-        <td>goat</td>
-        <td>goat</td>
-        <td>car</td>
-    </tr>
-</table>
+  <p>Maybe you're not fully certain that switching is the better choice since we only ran 100 simulations each. Therefore, let's take a look at this problem through the lens of probability.</p>
+  <p>Let's pretend that an instance of the game has the following arrangement of car and goats. Once you understand the probabilities and outcomes for one arrangement, you'll be able to apply the same concepts to understanding all different types of arrangements.</p>
+  <div class="row">
+    <div class = "column">
+      <p>Door 1</p>
+      <img class = "door" src= "goat.svg"/>
+    </div>
+    <div class = "column">
+      <p>Door 2</p>
+      <img class = "door"  src= "goat.svg"/>
+    </div>
+    <div class = "column">
+      <p>Door 3</p>
+      <img class = "door" src= "car.svg"/>
+    </div>
+  </div><center>
+
+  
   <h2>Outcomes for Staying</h2>
   <table border="1">
       <tr>
@@ -675,28 +650,29 @@ function drawChart() {
           <th>Outcome</th>
       </tr>
       <tr>
-          <td>goat</td>
-          <td>goat</td>
-          <td>car</td>
+          <td>Goat</td>
+          <td>Goat</td>
+          <td>Car</td>
           <td>Pick Door 1</td>
-          <td>Lose</td>
+          <td>Lose 🐐</td>
       </tr>
       <tr>
-          <td>goat</td>
-          <td>goat</td>
-          <td>car</td>
+          <td>Goat</td>
+          <td>Goat</td>
+          <td>Car</td>
           <td>Pick Door 2</td>
-          <td>Lose</td>
+          <td>Lose 🐐</td>
       </tr>
       <tr>
-          <td>goat</td>
-          <td>goat</td>
-          <td>car</td>
+          <td>Goat</td>
+          <td>Goat</td>
+          <td>Car</td>
           <td>Pick Door 3</td>
-          <td>Win</td>
+          <td>Win 🚗</td>
       </tr>
   </table>
-
+  <p style="font-size:15px;"><b>Win Percentage: </b>1 out of 3, or 33.33%</p>
+<br>
   <h2>Outcomes for Switching</h2>
   <table border="1">
       <tr>
@@ -707,31 +683,159 @@ function drawChart() {
           <th>Outcome</th>
       </tr>
       <tr>
-          <td>goat</td>
-          <td>goat</td>
-          <td>car</td>
+          <td>Goat</td>
+          <td>Goat</td>
+          <td>Car</td>
           <td>Pick door 1. Host shows Door 2. You switch to Door 3</td>
-          <td>Win</td>
+          <td>Win 🚗</td>
       </tr>
       <tr>
-          <td>goat</td>
-          <td>goat</td>
-          <td>car</td>
+          <td>Goat</td>
+          <td>Goat</td>
+          <td>Car</td>
           <td>Pick door 2. Host shows Door 1. You switch to Door 3</td>
-          <td>Win</td>
+          <td>Win 🚗</td>
       </tr>
       <tr>
-          <td>goat</td>
-          <td>goat</td>
-          <td>car</td>
+          <td>Goat</td>
+          <td>Goat</td>
+          <td>Car</td>
           <td>Pick door 3. Host shows Door 1 or 2. Regardless, you switch</td>
-          <td>Lose</td>
+          <td>Lose 🐐</td>
       </tr>
   </table>
+  <p style="font-size: 12px;">Note: Remember that the door the host reveals is <i>always</i> a goat.</p>
+  <p style="font-size:15px;"><b>Win Percentage: </b>2 out of 3, or 66.67%</p>
 </center>
-  <p><b>Bayes' Theorem: </b>P(A|B) = P(B|A)P(A) / P(B) = P(B|A) * P(A) / P(B|A) * P(A) + P(B|not A) * P(not A)</p>
+  <p>Did you know that you can also solve this problem using a formula called the <b>Bayes' theorem</b>? Simply put, Bayes' theorem allows us to describe "the probability of an event, based on prior knowledge of conditions that might be related to that event" (Thanks, <a href = "https://en.wikipedia.org/wiki/Bayes%27_theorem">Wikipedia</a> for the definition). Bayes' theorem states</p>
+  <Katex>P(A|B) = </Katex>P(B|A)P(A) / P(B)
+  <p>Let's start back at the beginning and view the Monty Hall problem through the lens of Bayes' theorem.</p>
+  <div class="row">
+    <div class = "column">
+      <p>Door 1</p>
+      <img class = "door" src= "closed-door.svg"/>
+      <p style="font-size: 12px;">Probability that Door 1 contains the car:</p>
+      P(Car at Door 1) = <Katex>\frac{1}{3}</Katex>
+    </div>
+    <div class = "column">
+      <p>Door 2</p>
+      <img class = "door"  src= "closed-door.svg"/>
+      <p style="font-size: 12px;">Probability that Door 2 contains the car:</p>
+      P(Car at Door 2) = <Katex>\frac{1}{3}</Katex>
+    </div>
+    <div class = "column">
+      <p>Door 3</p>
+      <img class = "door" src= "closed-door.svg"/>
+      <p style="font-size: 12px;">Probability that Door 3 contains the car:</p>
+      P(Car at Door 3) = <Katex>\frac{1}{3}</Katex>
+    </div>
+  </div>
+  <p>The probabilities are the same because there is an equal chance the car could be behind each door.</p>
+  <p style="font-size: 12px;">Note: These probabilities assume the host has not revealed anything about what is behind a certain door.</p>
+  <div class="statistics"></div>
+  <h1>MISSING EXPLANATIONS OF HOW WE GOT THE OTHER NUMBERS</h1>
   <p><b>Probability of winning car given staying at original door: </b>(1/2)(1/3) / ((1/2)(1/3) + (0)(1/3) + (1)(1/3)) = 1/3</p>
   <p><b>Probability of winning car given switching doors: </b>(1)(1/3) / ((1/2)(1/3) + (0)(1/3) + (1)(1/3)) = 2/3</p>
+  <p>Believe us now? Switching is by far the best choice to optimze your chances at winning.</p>
+
+<button class = "btn" on:click={nextPage}>Apply what you learned!</button>
+<br>
+<br>
+<br>
+{/if}
+{#if pageNumber === 5}
+<div class = "simulation">
+  <p>Play the Monty Hall problem simulation as many times as you would like and see what your success rates are when you choose to "stay" or "switch".</p>
+  <div class="row">
+    <div class = "column" on:click={() => selectDoor(0)}
+      style={`border: solid 5px ${userSelection === 0 ? "black" : "#fef2cf"}`}
+      >
+      <img class = "door" src= "closed-door.svg"/>
+    </div>
+    <div class = "column" on:click={() => selectDoor(1)}
+      style={`border: solid 5px ${userSelection === 1 ? "black" : "#fef2cf"}`}
+      >
+      <img class = "door"  src= "closed-door.svg"/>
+    </div>
+    <div class = "column" on:click={() => selectDoor(2)}
+      style={`border: solid 5px ${userSelection === 2 ? "black" : "#fef2cf"}`}
+      >
+      <img class = "door" src= "closed-door.svg"/>
+    </div>
+  </div>
+</div>
+{#if gamePhase === 0}
+  <div class="phase0">
+    <p>Select a door.</p>
+    <button class = "btn" on:click={next}>Next</button>
+    <br>
+  </div>
+{/if}
+{#if gamePhase === 1}
+<div class="phase1">
+  <p>We will now reveal what is behind one of the doors you did not select.</p>
+  <button class = "btn" on:click={revealHost}>Reveal</button>
+</div>
+{/if}
+{#if gamePhase === 2}
+<div class="phase2">
+  <p>Would you like to change your selection? Stay or Switch</p>
+  <div class = "twoBtns">
+    <button class = "btn" on:click={userStay}>Stay</button>
+    <button class = "btn" on:click={userSwitch}>Switch</button>
+  </div>
+</div>
+{/if}
+{#if gamePhase === 3}
+<div class="phase3">
+  <p>See if you've won!</p>
+  <button class = "btn" on:click={revealAll}>Reveal</button>
+</div>
+{/if}
+{#if gamePhase === 4}
+<div style="padding-top: 20px;">
+  <p>{gameResult}</p>
+    <button class = "btn" on:click={restartGame}>Try again</button>
+</div>
+{/if}
+<div class = "simulation">
+  <p>Your Win-Loss Statistics</p>
+  <div class="row">
+    <div>
+<table>
+  <tr>
+    <th>Games</th>
+    <th>Stay</th>
+    <th>Switch</th>
+  </tr>
+  <tr>
+    <td>Wins:</td>
+    <td>{score.stay.win}</td>
+    <td>{score.switch.win}</td>
+  </tr>
+  <tr>
+    <td>Losses:</td>
+    <td>{score.stay.loss}</td>
+    <td>{score.switch.loss}</td>
+  </tr>
+  <tr>
+    <td>Success Rate:</td>
+    <td>{Math.round((score.stay.win / (score.stay.win + score.stay.loss)) * 100) || 0 }%</td>
+    <td>{Math.round((score.switch.win / (score.switch.win + score.switch.loss)) * 100) || 0}%</td>
+  </tr>
+</table>
+</div>
+<div class = "pieChart" id="pieChartStay">Win-Loss Breakdown (Stay)<br>
+  <svg width="150" height="150"><g transform="translate(75,75)" stroke="#ECECEC" style="stroke-width: 1px;"><g class="arc"><path d="M0,-65A65,65,0,1,1,-60.173,24.581L0,0Z" fill="#ECECEC"></path></g><g class="arc"><path d="M-60.173,24.581A65,65,0,0,1,0,-65L0,0Z" fill="#ECECEC"></path></g></g></svg>
+</div>
+<div class = "pieChart" id="pieChartSwitch">Win-Loss Breakdown (Switch)<br>
+  <svg width="150" height="150"><g transform="translate(75,75)" stroke="#ECECEC" style="stroke-width: 1px;"><g class="arc"><path d="M0,-65A65,65,0,1,1,-60.173,24.581L0,0Z" fill="#ECECEC"></path></g><g class="arc"><path d="M-60.173,24.581A65,65,0,0,1,0,-65L0,0Z" fill="#ECECEC"></path></g></g></svg>
+</div>
+  </div>
+</div>
+<br>
+<br>
+<br>
 {/if}
 </main>
 
@@ -861,12 +965,6 @@ function drawChart() {
     flex: 33.33%;
     padding: 5px;
   }
-  .pieCharts {
-    display: flex;
-    width:80%;
-    padding-left: 10%;
-    justify-content: center;
-  }
 
   .pieChart {
     flex: 33.33%;
@@ -876,11 +974,6 @@ function drawChart() {
     display: flex;
     justify-content: center;
     padding: 20px
-  }
-  h1 {
-    color: #000000;
-    font-size: 3em;
-    font-weight: 100;
   }
   h2 {
     color: #000000;
@@ -897,5 +990,6 @@ function drawChart() {
   }
   td, th {
     padding: 8px;
+    text-align: center;
   }
 </style>
