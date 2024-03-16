@@ -14,11 +14,16 @@
       switch: {win: 0, loss: 0},
     }
   }
+  let simStayScoreWin = 0;
+  let simStayScoreLoss = 0;
+  let simSwitchScoreWin =  0;
+  let simSwitchScoreLoss =  0;
   let path = ""; // "stay" | "switch"
   let gamePhase = 0;
   let userSelection = null;
   let hostRevealed = null;
   let gameResult = "";
+  let pageNumber = 0;
   function selectPrizeDoor() {
     return Math.floor(Math.random() * 3);
   }
@@ -58,32 +63,32 @@
   } 
   function autoselectStay(iteration) {
     userSelection = Math.floor(Math.random() * 3);
-    setTimeout(() => {  revealHost(); }, 100);
-    setTimeout(() => {  userStay(); }, 100);
-    setTimeout(() => {  revealAll(); }, 200);
-    setTimeout(() => {  data.push({ trial: iteration+1, percentage: Math.round((score.stay.win / (score.stay.win + score.stay.loss)) * 100) });  }, 200);
-    setTimeout(() => {  drawChart(); }, 300);
-    setTimeout(() => {  restartGame(); }, 300);
+    setTimeout(() => {  revealHost(); }, 50);
+    setTimeout(() => {  userStay(); }, 50);
+    setTimeout(() => {  revealAllSim(); }, 100);
+    setTimeout(() => {  data.push({ trial: iteration+1, percentage: Math.round((simStayScoreWin / (simStayScoreWin + simStayScoreLoss)) * 100) });  }, 100);
+    setTimeout(() => {  drawChart(); }, 150);
+    setTimeout(() => {  restartGame(); }, 200);
   }
   function autoselectSwitch(iteration) {
     userSelection = Math.floor(Math.random() * 3);
-    setTimeout(() => {  revealHost(); }, 100);
-    setTimeout(() => {  userSwitch(); }, 150);
-    setTimeout(() => {  revealAll(); }, 200);
-    setTimeout(() => {  dataSwitch.push({ trial: iteration+1, percentage: Math.round((score.switch.win / (score.switch.win + score.switch.loss)) * 100) });  }, 200);
-    setTimeout(() => {  drawLineChart(); }, 300);
-    setTimeout(() => {  restartGame(); }, 300);
+    setTimeout(() => {  revealHost(); }, 50);
+    setTimeout(() => {  userSwitch(); }, 75);
+    setTimeout(() => {  revealAllSim(); }, 100);
+    setTimeout(() => {  dataSwitch.push({ trial: iteration+1, percentage: Math.round((simSwitchScoreWin / (simSwitchScoreWin + simSwitchScoreLoss)) * 100) });  }, 100);
+    setTimeout(() => {  drawLineChart(); }, 150);
+    setTimeout(() => {  restartGame(); }, 200);
   }
   function restartGame() {
     closeDoor(0);
     closeDoor(1);
     closeDoor(2);
-    closeDoor(3);
-    closeDoor(4);
-    closeDoor(5);
-    closeDoor(6);
-    closeDoor(7);
-    closeDoor(8);
+    // closeDoor(3);
+    // closeDoor(4);
+    // closeDoor(5);
+    // closeDoor(6);
+    // closeDoor(7);
+    // closeDoor(8);
     initialize();
   }
   function next() {
@@ -104,8 +109,8 @@
         hostRevealed = 3 - userSelection - prizeDoor;
       }
       openDoor(hostRevealed);
-      openDoor(hostRevealed+3);
-      openDoor(hostRevealed+6);
+      // openDoor(hostRevealed+3);
+      // openDoor(hostRevealed+6);
     }
     gamePhase++;
   } 
@@ -118,16 +123,35 @@
     path = "switch";
     gamePhase++;
   } 
+  function revealAllSim() {
+    openDoor(0);
+    openDoor(1);
+    openDoor(2);
+    if (path === 'stay') {
+      if (userSelection === prizeDoor) {
+        simStayScoreWin++;
+      } else {
+        simStayScoreLoss++;
+      }
+    } else {
+      if (userSelection === prizeDoor) {
+        simSwitchScoreWin++;
+      } else {
+        simSwitchScoreLoss++;
+      }
+    }
+
+  }
   function revealAll() {
     openDoor(0);
     openDoor(1);
     openDoor(2);
-    openDoor(3);
-    openDoor(4);
-    openDoor(5);
-    openDoor(6);
-    openDoor(7);
-    openDoor(8);
+    // openDoor(3);
+    // openDoor(4);
+    // openDoor(5);
+    // openDoor(6);
+    // openDoor(7);
+    // openDoor(8);
     if (userSelection === prizeDoor) {
       gameResult = "You won!  But did you optimize your odds or were you just lucky? In other words, is it better to stay or to switch?"
     } else {
@@ -248,9 +272,10 @@ let data = [
     ];
 let dataSwitch = [
     ];
-function initializeLineChart(){
+
+function drawChart() {
   d3.select('#lineChart').selectAll('svg').remove();
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const margin = { top: 50, right: 20, bottom: 50, left: 100 };
       const width = 400;
       const height = 200;
 
@@ -269,131 +294,29 @@ function initializeLineChart(){
         .domain([0, 100])
         .range([height, 0]);
 
-      const xAxis = axisBottom(x);
-      const yAxis = axisLeft(y);
+        const xAxis = axisBottom(x);
+      const yAxis = axisLeft(y).ticks(4);
 
+      const gridlines = svg.append('g')
+        .attr('class', 'grid')
+        .attr('color', '#dec8b1')
+        .style("stroke-dasharray", ("3, 3")) 
+        .call(axisLeft(y).tickSize(-width).tickFormat(''));
+
+      // x-axis nums
       svg.append('g')
         .attr('transform', `translate(0,${height})`)
         .call(xAxis)
-        .attr("font-family","Barlow");
+        .style('font-size', '15px');
 
+      // y-axis nums
       svg.append('g')
-        .call(yAxis)
-        .attr("font-family","Barlow");
+        .call(yAxis.tickFormat(d => d + '%'))
+        .style('font-size', '15px');
 
-
-      svg.append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "middle")
-        .attr("x", width/2)
-        .attr("y", height +35)
-        .text("NUMBER OF TRIALS");
-      svg.append("text")
-        .attr("class", "y label")
-        .attr("text-anchor", "middle")
-        .attr("y", -27)
-        .attr("x", -100)
-        // .attr("dy", ".75em")
-        .attr("transform", "rotate(-90)")
-        .text("SUCCESS RATE");
-}
-function initializeLineChartSwitch(){
-  d3.select('#lineChartSwitch').selectAll('svg').remove();
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
-      const width = 400;
-      const height = 200;
-
-      const svg = d3.select('#lineChartSwitch')
-        .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom+6)
-        .append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
-
-      const x = scaleLinear()
-        .domain([1, 100])
-        .range([0, width]);
-
-      const y = scaleLinear()
-        .domain([0, 100])
-        .range([height, 0]);
-
-      const xAxis = axisBottom(x);
-      const yAxis = axisLeft(y);
-
-      svg.append('g')
-        .attr('transform', `translate(0,${height})`)
-        .call(xAxis)
-        .attr("font-family","Barlow");
-
-      svg.append('g')
-        .call(yAxis)
-        .attr("font-family","Barlow");
-
-
-      svg.append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "middle")
-        .attr("x", width/2)
-        .attr("y", height +35)
-        .text("NUMBER OF TRIALS");
-      svg.append("text")
-        .attr("class", "y label")
-        .attr("text-anchor", "middle")
-        .attr("y", -27)
-        .attr("x", -100)
-        // .attr("dy", ".75em")
-        .attr("transform", "rotate(-90)")
-        .text("SUCCESS RATE");
-}
-function drawChart() {
-  d3.select('#lineChartSwitch').selectAll('svg').remove();
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
-      const width = 400;
-      const height = 200;
-
-      const svg = d3.select('#lineChartSwitch')
-        .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom+6)
-        .append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
-
-      const x = scaleLinear()
-        .domain([1, 100])
-        .range([0, width]);
-
-      const y = scaleLinear()
-        .domain([0, 100])
-        .range([height, 0]);
-
-      const xAxis = axisBottom(x);
-      const yAxis = axisLeft(y);
-
-      svg.append('g')
-        .attr('transform', `translate(0,${height})`)
-        .call(xAxis)
-        .attr("font-family","Barlow");
-
-      svg.append('g')
-        .call(yAxis)
-        .attr("font-family","Barlow");
-
-
-      svg.append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "middle")
-        .attr("x", width/2)
-        .attr("y", height +35)
-        .text("NUMBER OF TRIALS");
-      svg.append("text")
-        .attr("class", "y label")
-        .attr("text-anchor", "middle")
-        .attr("y", -27)
-        .attr("x", -100)
-        // .attr("dy", ".75em")
-        .attr("transform", "rotate(-90)")
-        .text("SUCCESS RATE");
+      // thicker x and y axis lines
+      svg.selectAll('.domain')
+	      .style('stroke-width', '2px');
 
       const lineGenerator = line()
         .x(d => x(d.trial))
@@ -402,14 +325,54 @@ function drawChart() {
       const path = svg.append('path')
         .datum(data)
         .attr('fill', 'none')
-        .attr('stroke', 'steelblue')
+        .attr('stroke', 'red')
         .attr('stroke-width', 1.5)
         .attr('d', lineGenerator);
+      // top right num of successes
+      const numSuccesses = svg.append("text")
+        .attr("y", 15)
+        .attr("x", 340)
+        .attr('text-anchor', 'middle')
+        .attr("class", "successes")
+        .attr("font-weight", 600)
+        .html(function() {
+	        return `<tspan fill="#dec8b1">${simStayScoreWin}</tspan><tspan fill="#dec8b1"> SUCCESSES</tspan>`;
+				});
+
+      // bottom right num of failures
+      const numFailures = svg.append("text")
+        .attr("y", 195)
+        .attr("x", 350)
+        .attr('text-anchor', 'middle')
+        .attr("class", "failures")
+        .attr("font-weight", 600)
+        .html(function() {
+	        return `<tspan fill="#dec8b1">${simStayScoreLoss}</tspan><tspan fill="#dec8b1"> FAILURES</tspan>`;
+				});
+
+      // x-axis label
+      svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", 200)
+        .attr("y", 240)
+        .attr("font-weight", 600)
+        .text("NUMBER OF TRIALS");
+
+      // y-axis label
+      svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("y", -50)
+        .attr("x", -100)
+        .attr("font-weight", 600)
+        .attr("transform", "rotate(-90)")
+        .text("SUCCESS RATE");
 
   }
   function drawLineChart() {
     d3.select('#lineChartSwitch').selectAll('svg').remove();
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const margin = { top: 50, right: 20, bottom: 50, left: 100 };
       const width = 400;
       const height = 200;
 
@@ -428,15 +391,29 @@ function drawChart() {
         .domain([0, 100])
         .range([height, 0]);
 
-      const xAxis = axisBottom(x);
-      const yAxis = axisLeft(y);
+        const xAxis = axisBottom(x);
+      const yAxis = axisLeft(y).ticks(4);
 
+      const gridlines = svg.append('g')
+        .attr('class', 'grid')
+        .attr('color', '#dec8b1')
+        .style("stroke-dasharray", ("3, 3")) 
+        .call(axisLeft(y).tickSize(-width).tickFormat(''));
+
+      // x-axis nums
       svg.append('g')
         .attr('transform', `translate(0,${height})`)
-        .call(xAxis);
+        .call(xAxis)
+        .style('font-size', '15px');
 
+      // y-axis nums
       svg.append('g')
-        .call(yAxis);
+        .call(yAxis.tickFormat(d => d + '%'))
+        .style('font-size', '15px');
+
+      // thicker x and y axis lines
+      svg.selectAll('.domain')
+	      .style('stroke-width', '2px');
 
       const lineGenerator = line()
         .x(d => x(d.trial))
@@ -445,39 +422,65 @@ function drawChart() {
       const path = svg.append('path')
         .datum(dataSwitch)
         .attr('fill', 'none')
-        .attr('stroke', 'steelblue')
+        .attr('stroke', 'red')
         .attr('stroke-width', 1.5)
         .attr('d', lineGenerator);
+      // top right num of successes
+      const numSuccesses = svg.append("text")
+        .attr("y", 15)
+        .attr("x", 340)
+        .attr('text-anchor', 'middle')
+        .attr("class", "successes")
+        .attr("font-weight", 600)
+        .html(function() {
+	        return `<tspan fill="#dec8b1">${simSwitchScoreWin}</tspan><tspan fill="#dec8b1"> SUCCESSES</tspan>`;
+				});
+
+      // bottom right num of failures
+      const numFailures = svg.append("text")
+        .attr("y", 195)
+        .attr("x", 350)
+        .attr('text-anchor', 'middle')
+        .attr("class", "failures")
+        .attr("font-weight", 600)
+        .html(function() {
+	        return `<tspan fill="#dec8b1">${simSwitchScoreLoss}</tspan><tspan fill="#dec8b1"> FAILURES</tspan>`;
+				});
+
+      // x-axis label
       svg.append("text")
         .attr("class", "x label")
         .attr("text-anchor", "middle")
-        .attr("x", width/2)
-        .attr("y", height +35)
+        .attr("x", 200)
+        .attr("y", 240)
+        .attr("font-weight", 600)
         .text("NUMBER OF TRIALS");
-      svg.append("text")
-      .attr("class", "y label")
-      .attr("text-anchor", "middle")
-      .attr("y", -27)
-      .attr("x", -100)
-      // .attr("dy", ".75em")
-      .attr("transform", "rotate(-90)")
-      .text("SUCCESS RATE");
 
-      // data.forEach((d, i) => {
-      //   setTimeout(() => {
-      //     path.transition()
-      //       .attr('d', lineGenerator(data.slice(0, i + 1)));
-      //   }, i * 1000); // Adjust the delay time as needed
-      // });
+      // y-axis label
+      svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("y", -50)
+        .attr("x", -100)
+        .attr("font-weight", 600)
+        // .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("SUCCESS RATE");
+  }
+  function nextPage(){
+    pageNumber++;
   }
 </script>
 
 <main>
+  {#if pageNumber === 0}
   <div class = "title-page">
     <img src = "title-page.svg"/>
     <button class = "aboutBtn"><img src = "question-sign.png"/></button>
-    <button class = "btn" on:click={() => {initializeLineChart(); initializeLineChartSwitch();}}>Let's do this!</button>
+    <button class = "btn" on:click={() => {nextPage();}}>Let's do this!</button>
   </div>
+  {/if}
+  {#if pageNumber === 1}
   <div class = "game">
     <p>In front of you are three doors. Behind one door is a car 🚗 and behind the other two are goats 🐐🐐.</p>
     <div class="row">
@@ -531,16 +534,18 @@ function drawChart() {
     <p>{gameResult}</p>
     <div class = "twoBtns">
       <button class = "btn" on:click={restartGame}>Try again</button>
-      <button class = "btn">Tell me more!</button>
+      <button class = "btn" on:click={() => {restartGame(); nextPage();}}>Tell me more!</button>
     </div>
   </div>
   {/if}
-  <br>
+  {/if}
+  {#if pageNumber === 2}
+  <div>
   <p>Would you believe it if we told you that choosing not to switch your selection after the host reveals a door to you decreases your probability of winning to only <b>33%</b>?</p>
   <p>Don't believe us? Click the button below to simulate 100 games where the user stays.</p>
   <button class = "btn" on:click={() => { 
     for (let i = 0; i < 100; i++) {
-      setTimeout(() => autoselectStay(i), i * 500); 
+      setTimeout(() => autoselectStay(i), i * 250); 
       }
     }}>
     Simulate 100 Games
@@ -562,27 +567,25 @@ function drawChart() {
         >
         <img class = "door" src= "closed-door.svg"/>
       </div>
-      <div class = "column" id="lineChart"></div>
+      <div class = "column" id="lineChart">
+        <svg width="520" height="306"><g transform="translate(100,50)"><g class="grid" color="#dec8b1" fill="none" font-size="10" font-family="sans-serif" text-anchor="end" style="stroke-dasharray: 3, 3;"><path class="domain" stroke="currentColor" d="M400,200H0V0H400" style="stroke-width: 2px;"></path><g class="tick" opacity="1" transform="translate(0,200)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,180)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,160)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,140)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,120)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,100)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,80)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,60.00000000000001)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,39.99999999999999)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,19.999999999999996)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,0)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g></g><g transform="translate(0,200)" fill="none" font-size="10" font-family="sans-serif" text-anchor="middle" style="font-size: 15px;"><path class="domain" stroke="currentColor" d="M0,6V0H400V6" style="stroke-width: 2px;"></path><g class="tick" opacity="1" transform="translate(36.36363636363637,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">10</text></g><g class="tick" opacity="1" transform="translate(76.76767676767676,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">20</text></g><g class="tick" opacity="1" transform="translate(117.17171717171718,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">30</text></g><g class="tick" opacity="1" transform="translate(157.57575757575756,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">40</text></g><g class="tick" opacity="1" transform="translate(197.97979797979798,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">50</text></g><g class="tick" opacity="1" transform="translate(238.38383838383837,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">60</text></g><g class="tick" opacity="1" transform="translate(278.7878787878788,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">70</text></g><g class="tick" opacity="1" transform="translate(319.1919191919192,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">80</text></g><g class="tick" opacity="1" transform="translate(359.5959595959596,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">90</text></g><g class="tick" opacity="1" transform="translate(400,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">100</text></g></g><g fill="none" font-size="10" font-family="sans-serif" text-anchor="end" style="font-size: 15px;"><path class="domain" stroke="currentColor" d="M-6,200H0V0H-6" style="stroke-width: 2px;"></path><g class="tick" opacity="1" transform="translate(0,200)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">0%</text></g><g class="tick" opacity="1" transform="translate(0,160)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">20%</text></g><g class="tick" opacity="1" transform="translate(0,120)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">40%</text></g><g class="tick" opacity="1" transform="translate(0,80)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">60%</text></g><g class="tick" opacity="1" transform="translate(0,39.99999999999999)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">80%</text></g><g class="tick" opacity="1" transform="translate(0,0)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">100%</text></g></g><text y="15" x="340" text-anchor="middle" class="successes" font-weight="600"><tspan fill="#dec8b1">0 </tspan><tspan fill="#dec8b1"> SUCCESSES</tspan></text><text y="195" x="350" text-anchor="middle" class="failures" font-weight="600"><tspan fill="#dec8b1">0 </tspan><tspan fill="#dec8b1"> FAILURES</tspan></text><text class="x label" text-anchor="middle" x="200" y="240" font-weight="600">NUMBER OF TRIALS</text><text class="y label" text-anchor="middle" y="-50" x="-100" font-weight="600" transform="rotate(-90)">SUCCESS RATE</text></g></svg>
+      </div>
     </div>
   </div>
   <br>
   <br>
   <p>As you might have noticed, the car wasn't chosen very often when we don't change our selection. We are converging towards a 33% win rate. Those don't seem like good odds!</p>
-  <div id="lineChart"></div>
-  <!-- <img src= "switch-graph-png.png"/> -->
-  <br>
-  <br>
-  <br>
-  <button class="btn">What if we switch?</button>
-  <br>
-  <br>
-  <br>
-  <br>
+
+  <button class="btn" on:click={nextPage}>What if we switch?</button>
+</div>
+  {/if}
+
+  {#if pageNumber === 3}
   <p>Based on fancy math (which we will explain later), switching gives us a higher win rate of <b>66%</b>!</p>
   <p>Don't take our word for it though. Simulate 100 games where the user switches.</p>
   <button class = "btn" on:click={() => { 
     for (let i = 0; i < 100; i++) {
-      setTimeout(() => autoselectSwitch(i), i * 500);
+      setTimeout(() => autoselectSwitch(i), i * 250);
       }
     }}>
     Simulate 100 Games
@@ -604,23 +607,18 @@ function drawChart() {
         >
         <img class = "door" src= "closed-door.svg"/>
       </div>
-      <div class = "column" id="lineChartSwitch"></div>
+      <div class = "column" id="lineChartSwitch">
+                <svg width="520" height="306"><g transform="translate(100,50)"><g class="grid" color="#dec8b1" fill="none" font-size="10" font-family="sans-serif" text-anchor="end" style="stroke-dasharray: 3, 3;"><path class="domain" stroke="currentColor" d="M400,200H0V0H400" style="stroke-width: 2px;"></path><g class="tick" opacity="1" transform="translate(0,200)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,180)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,160)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,140)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,120)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,100)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,80)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,60.00000000000001)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,39.99999999999999)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,19.999999999999996)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g><g class="tick" opacity="1" transform="translate(0,0)"><line stroke="currentColor" x2="400"></line><text fill="currentColor" x="-3" dy="0.32em"></text></g></g><g transform="translate(0,200)" fill="none" font-size="10" font-family="sans-serif" text-anchor="middle" style="font-size: 15px;"><path class="domain" stroke="currentColor" d="M0,6V0H400V6" style="stroke-width: 2px;"></path><g class="tick" opacity="1" transform="translate(36.36363636363637,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">10</text></g><g class="tick" opacity="1" transform="translate(76.76767676767676,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">20</text></g><g class="tick" opacity="1" transform="translate(117.17171717171718,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">30</text></g><g class="tick" opacity="1" transform="translate(157.57575757575756,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">40</text></g><g class="tick" opacity="1" transform="translate(197.97979797979798,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">50</text></g><g class="tick" opacity="1" transform="translate(238.38383838383837,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">60</text></g><g class="tick" opacity="1" transform="translate(278.7878787878788,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">70</text></g><g class="tick" opacity="1" transform="translate(319.1919191919192,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">80</text></g><g class="tick" opacity="1" transform="translate(359.5959595959596,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">90</text></g><g class="tick" opacity="1" transform="translate(400,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">100</text></g></g><g fill="none" font-size="10" font-family="sans-serif" text-anchor="end" style="font-size: 15px;"><path class="domain" stroke="currentColor" d="M-6,200H0V0H-6" style="stroke-width: 2px;"></path><g class="tick" opacity="1" transform="translate(0,200)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">0%</text></g><g class="tick" opacity="1" transform="translate(0,160)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">20%</text></g><g class="tick" opacity="1" transform="translate(0,120)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">40%</text></g><g class="tick" opacity="1" transform="translate(0,80)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">60%</text></g><g class="tick" opacity="1" transform="translate(0,39.99999999999999)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">80%</text></g><g class="tick" opacity="1" transform="translate(0,0)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">100%</text></g></g><text y="15" x="340" text-anchor="middle" class="successes" font-weight="600"><tspan fill="#dec8b1">0 </tspan><tspan fill="#dec8b1"> SUCCESSES</tspan></text><text y="195" x="350" text-anchor="middle" class="failures" font-weight="600"><tspan fill="#dec8b1">0 </tspan><tspan fill="#dec8b1"> FAILURES</tspan></text><text class="x label" text-anchor="middle" x="200" y="240" font-weight="600">NUMBER OF TRIALS</text><text class="y label" text-anchor="middle" y="-50" x="-100" font-weight="600" transform="rotate(-90)">SUCCESS RATE</text></g></svg>
+      </div>
     </div>
   </div>
-  <br>
-  <br>
-  <br>
-  <br>
+
   <p>That's more like it! As you can see, there's a higher probability of winning when the user switches their selection insteading of staying on their original door of choice.</p>
-  <!-- <img src= "stay-graph-png.png"/> -->
-  <br>
-  <br>
-  <button class = "btn">I'm not convinced!</button>
-  <br>
-  <br>
-  <br>
-  <br>
-  <p><b>But that's only a sample size of 10, which isn't enough to draw conclusions. </b>Not to worry! We went ahead and generated hundreds of simulations of the Monty Hall problem.</p>
+
+  <button class = "btn" on:click={nextPage}>I'm not convinced!</button>
+  {/if}
+
+  {#if pageNumber === 4}
   <p>Believe us now? Switching is by far the best choice to optimze your chances at winning.</p>
   <div class="statistics">
     <table>
@@ -734,14 +732,7 @@ function drawChart() {
   <p><b>Bayes' Theorem: </b>P(A|B) = P(B|A)P(A) / P(B) = P(B|A) * P(A) / P(B|A) * P(A) + P(B|not A) * P(not A)</p>
   <p><b>Probability of winning car given staying at original door: </b>(1/2)(1/3) / ((1/2)(1/3) + (0)(1/3) + (1)(1/3)) = 1/3</p>
   <p><b>Probability of winning car given switching doors: </b>(1)(1/3) / ((1/2)(1/3) + (0)(1/3) + (1)(1/3)) = 2/3</p>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
+{/if}
 </main>
 
 <style>
