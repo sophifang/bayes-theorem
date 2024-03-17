@@ -479,7 +479,6 @@ function drawChart() {
   {#if pageNumber === 0}
   <div class = "title-page">
     <img src = "title-page.svg"/>
-    <button class = "aboutBtn"><img src = "question-sign.png"/></button>
     <button class = "btn" on:click={() => {nextPage();}}>Let's do this!</button>
   </div>
   {/if}
@@ -546,11 +545,14 @@ function drawChart() {
   <div>
   <p>Would you believe it if we told you that choosing not to switch your selection after the host reveals a door to you decreases your probability of winning to only <b>33%</b>?</p>
   <p>Don't believe us? Click the button below to simulate 100 games where the user stays.</p>
-  <button class = "btn" on:click={() => { 
-    for (let i = 0; i < 100; i++) {
-      setTimeout(() => autoselectStay(i), i * 250); 
-      }
-    }}>
+  <button class="btn" on:click="{() => { 
+      for (let i = 0; i < 100; i++) { 
+        setTimeout(() => { 
+          autoselectStay(i);
+          document.querySelector('.btn').style.display = 'none';  
+        }, i * 250); 
+      } 
+    }}">
     Simulate 100 Games
   </button>
   <div class = "simulation">
@@ -577,20 +579,23 @@ function drawChart() {
   </div>
   <br>
   <br>
-  <p>As you might have noticed, the car wasn't chosen very often when we don't change our selection. We are converging towards a 33% win rate. Those don't seem like good odds!</p>
-
+  <p>As you might have noticed, the car wasn't chosen very often when we stuck with our selection. We are converging towards a 33% win rate. Those don't seem like good odds!</p>
+  <p style="font-size:18px;">Please click the button below after the line chart has finished plotting the data.</p>
   <button class="btn" on:click={nextPage}>What if we switch?</button>
 </div>
   {/if}
 
   {#if pageNumber === 3}
-  <p>Based on fancy math (which we will explain later), switching gives us a higher win rate of <b>66%</b>!</p>
+  <p>Based on fancy math (which we will explain a bit later), switching gives us a higher win rate of <b>66%</b>!</p>
   <p>Don't take our word for it though. Simulate 100 games where the user switches.</p>
-  <button class = "btn" on:click={() => { 
-    for (let i = 0; i < 100; i++) {
-      setTimeout(() => autoselectSwitch(i), i * 250);
-      }
-    }}>
+  <button class="btn" on:click="{() => { 
+      for (let i = 0; i < 100; i++) { 
+        setTimeout(() => { 
+          autoselectSwitch(i);
+          document.querySelector('.btn').style.display = 'none';  
+        }, i * 250); 
+      } 
+    }}">
     Simulate 100 Games
   </button>
   <div class = "simulation">
@@ -617,7 +622,7 @@ function drawChart() {
   </div>
 
   <p>That's more like it! As you can see, there's a higher probability of winning when the user switches their selection insteading of staying on their original door of choice.</p>
-
+  <p style="font-size:18px;">Please click the button below after the line chart has finished plotting the data.</p>
   <button class = "btn" on:click={nextPage}>I'm not convinced!</button>
   {/if}
 
@@ -671,7 +676,7 @@ function drawChart() {
           <td>Win 🚗</td>
       </tr>
   </table>
-  <p style="font-size:15px;"><b>Win Percentage: </b>1 out of 3, or 33.33%</p>
+  <p style="font-size:20px;"><b>Win Percentage: </b>1 out of 3, or 33.33%</p>
 <br>
   <h2>Outcomes for Switching</h2>
   <table border="1">
@@ -704,38 +709,10 @@ function drawChart() {
           <td>Lose 🐐</td>
       </tr>
   </table>
-  <p style="font-size: 12px;">Note: Remember that the door the host reveals is <i>always</i> a goat.</p>
-  <p style="font-size:15px;"><b>Win Percentage: </b>2 out of 3, or 66.67%</p>
+  <p style="font-size: 18px;">Note: Remember that the door the host reveals is <i>always</i> a goat.</p>
+  <p style="font-size:20px;"><b>Win Percentage: </b>2 out of 3, or 66.67%</p>
 </center>
-  <p>Did you know that you can also solve this problem using a formula called the <b>Bayes' theorem</b>? Simply put, Bayes' theorem allows us to describe "the probability of an event, based on prior knowledge of conditions that might be related to that event" (Thanks, <a href = "https://en.wikipedia.org/wiki/Bayes%27_theorem">Wikipedia</a> for the definition). Bayes' theorem states</p>
-  <Katex>P(A|B) = </Katex>P(B|A)P(A) / P(B)
-  <p>Let's start back at the beginning and view the Monty Hall problem through the lens of Bayes' theorem.</p>
-  <div class="row">
-    <div class = "column">
-      <p>Door 1</p>
-      <img class = "door" src= "closed-door.svg"/>
-      <p style="font-size: 12px;">Probability that Door 1 contains the car:</p>
-      P(Car at Door 1) = <Katex>\frac{1}{3}</Katex>
-    </div>
-    <div class = "column">
-      <p>Door 2</p>
-      <img class = "door"  src= "closed-door.svg"/>
-      <p style="font-size: 12px;">Probability that Door 2 contains the car:</p>
-      P(Car at Door 2) = <Katex>\frac{1}{3}</Katex>
-    </div>
-    <div class = "column">
-      <p>Door 3</p>
-      <img class = "door" src= "closed-door.svg"/>
-      <p style="font-size: 12px;">Probability that Door 3 contains the car:</p>
-      P(Car at Door 3) = <Katex>\frac{1}{3}</Katex>
-    </div>
-  </div>
-  <p>The probabilities are the same because there is an equal chance the car could be behind each door.</p>
-  <p style="font-size: 12px;">Note: These probabilities assume the host has not revealed anything about what is behind a certain door.</p>
-  <div class="statistics"></div>
-  <h1>MISSING EXPLANATIONS OF HOW WE GOT THE OTHER NUMBERS</h1>
-  <p><b>Probability of winning car given staying at original door: </b>(1/2)(1/3) / ((1/2)(1/3) + (0)(1/3) + (1)(1/3)) = 1/3</p>
-  <p><b>Probability of winning car given switching doors: </b>(1)(1/3) / ((1/2)(1/3) + (0)(1/3) + (1)(1/3)) = 2/3</p>
+<br>
   <p>Believe us now? Switching is by far the best choice to optimze your chances at winning.</p>
 
 <button class = "btn" on:click={nextPage}>Apply what you learned!</button>
@@ -799,40 +776,48 @@ function drawChart() {
 </div>
 {/if}
 <div class = "simulation">
-  <p>Your Win-Loss Statistics</p>
+  <br>
+  <p style="font-size: 25px;">Your Win-Loss Statistics</p>
+  <p style="font-size: 20px;">As you simulate games, your wins will be presented green and your losses will be presented red on the pie charts below.</p>
   <div class="row">
     <div>
-<table>
-  <tr>
-    <th>Games</th>
-    <th>Stay</th>
-    <th>Switch</th>
-  </tr>
-  <tr>
-    <td>Wins:</td>
-    <td>{score.stay.win}</td>
-    <td>{score.switch.win}</td>
-  </tr>
-  <tr>
-    <td>Losses:</td>
-    <td>{score.stay.loss}</td>
-    <td>{score.switch.loss}</td>
-  </tr>
-  <tr>
-    <td>Success Rate:</td>
-    <td>{Math.round((score.stay.win / (score.stay.win + score.stay.loss)) * 100) || 0 }%</td>
-    <td>{Math.round((score.switch.win / (score.switch.win + score.switch.loss)) * 100) || 0}%</td>
-  </tr>
-</table>
-</div>
-<div class = "pieChart" id="pieChartStay">Win-Loss Breakdown (Stay)<br>
-  <svg width="150" height="150"><g transform="translate(75,75)" stroke="#ECECEC" style="stroke-width: 1px;"><g class="arc"><path d="M0,-65A65,65,0,1,1,-60.173,24.581L0,0Z" fill="#ECECEC"></path></g><g class="arc"><path d="M-60.173,24.581A65,65,0,0,1,0,-65L0,0Z" fill="#ECECEC"></path></g></g></svg>
-</div>
-<div class = "pieChart" id="pieChartSwitch">Win-Loss Breakdown (Switch)<br>
-  <svg width="150" height="150"><g transform="translate(75,75)" stroke="#ECECEC" style="stroke-width: 1px;"><g class="arc"><path d="M0,-65A65,65,0,1,1,-60.173,24.581L0,0Z" fill="#ECECEC"></path></g><g class="arc"><path d="M-60.173,24.581A65,65,0,0,1,0,-65L0,0Z" fill="#ECECEC"></path></g></g></svg>
-</div>
+      <table>
+        <tr>
+          <th>Games</th>
+          <th>Stay</th>
+          <th>Switch</th>
+        </tr>
+        <tr>
+          <td>Wins:</td>
+          <td>{score.stay.win}</td>
+          <td>{score.switch.win}</td>
+        </tr>
+        <tr>
+          <td>Losses:</td>
+          <td>{score.stay.loss}</td>
+          <td>{score.switch.loss}</td>
+        </tr>
+        <tr>
+          <td>Success Rate:</td>
+          <td>{Math.round((score.stay.win / (score.stay.win + score.stay.loss)) * 100) || 0 }%</td>
+          <td>{Math.round((score.switch.win / (score.switch.win + score.switch.loss)) * 100) || 0}%</td>
+        </tr>
+      </table>
+    </div>
+  <div class = "pieChart" id="pieChartStay">Win-Loss Breakdown (Stay)<br>
+    <svg width="150" height="150"><g transform="translate(75,75)" stroke="#ECECEC" style="stroke-width: 1px;"><g class="arc"><path d="M0,-65A65,65,0,1,1,-60.173,24.581L0,0Z" fill="#ECECEC"></path></g><g class="arc"><path d="M-60.173,24.581A65,65,0,0,1,0,-65L0,0Z" fill="#ECECEC"></path></g></g></svg>
+  </div>
+  <div class = "pieChart" id="pieChartSwitch">Win-Loss Breakdown (Switch)<br>
+    <svg width="150" height="150"><g transform="translate(75,75)" stroke="#ECECEC" style="stroke-width: 1px;"><g class="arc"><path d="M0,-65A65,65,0,1,1,-60.173,24.581L0,0Z" fill="#ECECEC"></path></g><g class="arc"><path d="M-60.173,24.581A65,65,0,0,1,0,-65L0,0Z" fill="#ECECEC"></path></g></g></svg>
+  </div>
   </div>
 </div>
+<br>
+<br>
+<p style="font-size: 25px;"><b>Thank you for visiting the DSC 106 Game Show! Come back and play again!</b></p>
+<span><a href="https://github.com/sophifang/bayes-theorem/tree/main" target="_blank">GitHub Repo</a>
+    |  <a href="https://youtu.be/tQd_scXdlR4" target="_blank">Demo Video</a>
+  </span>
 <br>
 <br>
 <br>
